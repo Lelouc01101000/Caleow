@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>
+  /* Set the theme before anything renders, so the page never flashes
+     light before switching to dark (or vice versa). Runs on <html>
+     because <body> doesn't exist yet at this point in parsing. */
+  (function () {
+    try {
+      var saved = localStorage.getItem('caleow_theme');
+      var theme = saved || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Caleow — Calories, BMI &amp; Templates</title>
+<meta name="theme-color" content="#7C3AED">
+
+<!-- Browser tab icon. Place Caleow_Logo.png inside an assets/images folder next to this file. -->
+<link rel="icon" type="image/png" href="assets/images/Caleow_Logo.png">
+<link rel="apple-touch-icon" href="assets/images/Caleow_Logo.png">
+<link rel="manifest" href="manifest.json">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3C9 7 6 9.5 6 14a6 6 0 0 0 12 0c0-4.5-3-7-6-11Z" fill="white" opacity="0.95"/>
+          <path d="M12 8c-1.4 2-3 3.6-3 6a3 3 0 0 0 6 0c0-2.4-1.6-4-3-6Z" fill="#5B21B6" opacity="0.55"/>
+        </svg>
+      </div>
+      <div>
+        <p class="brand-name">Caleow</p>
+        <p class="brand-sub">Calories · BMI · Templates</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">
+        <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- CALORIE CALCULATOR VIEW -->
+    <section class="view active" id="view-calc">
+
+      <div class="card">
+        <div class="row" style="margin-bottom:14px;">
+          <h2 style="margin:0; font-size:16px;">Units</h2>
+          <div class="unit-switch" id="unitSwitch">
+            <button data-unit="metric" class="active">Metric (g)</button>
+            <button data-unit="us">US (oz)</button>
+          </div>
+        </div>
+
+        <div class="ring-wrap">
+          <div class="ring-center">
+            <svg class="ring-svg" width="168" height="168" viewBox="0 0 168 168">
+              <circle cx="84" cy="84" r="72" stroke="var(--ring-track)" stroke-width="14" fill="none"/>
+              <circle id="ringProgress" cx="84" cy="84" r="72" stroke="url(#ringGrad)" stroke-width="14" fill="none"
+                stroke-linecap="round" stroke-dasharray="452.4" stroke-dashoffset="452.4"/>
+              <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#A78BFA"/>
+                  <stop offset="100%" stop-color="#6D28D9"/>
+                </linearGradient>
+                <linearGradient id="ringGradOver" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#F5A25D"/>
+                  <stop offset="100%" stop-color="#E0525F"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="ring-total">
+              <span class="num mono" id="totalKcal">0</span>
+              <span class="label">kcal total</span>
+              <span class="over-note" id="overGoalNote"></span>
+            </div>
+          </div>
+          <div class="goal-row">
+            <span>Daily goal</span>
+            <div class="stepper">
+              <input type="number" id="goalInput" min="0" step="50">
+              <div class="stepper-buttons">
+                <button class="step-btn up" data-target="goalInput" data-step="50" aria-label="Increase">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                </button>
+                <button class="step-btn down" data-target="goalInput" data-step="-50" aria-label="Decrease">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </div>
+            </div>
+            <span class="unit-suffix">kcal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Add a food</div>
+      <div class="card">
+        <div class="tab-pills">
+          <div class="tab-pill active" data-panel="search">Search database</div>
+          <div class="tab-pill" data-panel="custom">Custom item</div>
+        </div>
+
+        <div id="panel-search">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="foodSearch" placeholder="Try “sugar”, “potato”, “rice”…" autocomplete="off">
+          </div>
+          <div class="results-list" id="resultsList"></div>
+
+          <div id="amountPanelWrap" style="display:none;">
+            <div class="divider"></div>
+            <div class="row" style="margin-bottom:2px;">
+              <strong id="selectedFoodName" style="font-size:14.5px;"></strong>
+              <span class="mono" id="selectedFoodKcalPer" style="font-size:12px; color:var(--text-muted);"></span>
+            </div>
+            <div class="amount-panel">
+              <div class="field">
+                <label id="amountLabel"></label>
+                <div class="stepper">
+                  <input type="number" id="amountInput" min="0" step="1">
+                  <div class="stepper-buttons">
+                    <button class="step-btn up" data-target="amountInput" data-step="1" aria-label="Increase">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                    </button>
+                    <button class="step-btn down" data-target="amountInput" data-step="-1" aria-label="Decrease">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="addFoodBtn">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-custom" style="display:none;">
+          <div class="field" style="margin-bottom:10px;">
+            <label>Item name</label>
+            <input type="text" id="customName" placeholder="e.g. Mom's lasagna slice">
+          </div>
+          <div class="amount-panel">
+            <div class="field">
+              <label>Calories (kcal)</label>
+              <div class="stepper">
+                <input type="number" id="customKcal" placeholder="320" min="0" step="5">
+                <div class="stepper-buttons">
+                  <button class="step-btn up" data-target="customKcal" data-step="5" aria-label="Increase">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                  </button>
+                  <button class="step-btn down" data-target="customKcal" data-step="-5" aria-label="Decrease">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="addCustomBtn">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Today's items</div>
+      <div class="card" id="loggedCard">
+        <div id="loggedList"></div>
+      </div>
+
+      <div class="row" style="gap:10px;">
+        <button class="btn btn-ghost btn-block" id="clearAllBtn">Clear all</button>
+        <button class="btn btn-primary btn-block" id="saveTemplateBtn">Save as template</button>
+      </div>
+    </section>
+
+    <!-- BMI VIEW -->
+    <section class="view" id="view-bmi">
+      <div class="card">
+        <div class="row" style="margin-bottom:14px;">
+          <h2 style="margin:0; font-size:16px;">Units</h2>
+          <div class="unit-switch" id="bmiUnitSwitch">
+            <button data-unit="metric" class="active">Metric</button>
+            <button data-unit="us">US</button>
+          </div>
+        </div>
+
+        <div id="bmiInputsMetric">
+          <div class="amount-panel" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Height (cm)</label>
+              <div class="stepper">
+                <input type="number" id="heightCm" placeholder="175" step="1">
+                <div class="stepper-buttons">
+                  <button class="step-btn up" data-target="heightCm" data-step="1" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+                  <button class="step-btn down" data-target="heightCm" data-step="-1" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Weight (kg)</label>
+              <div class="stepper">
+                <input type="number" id="weightKg" placeholder="70" step="0.5">
+                <div class="stepper-buttons">
+                  <button class="step-btn up" data-target="weightKg" data-step="0.5" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+                  <button class="step-btn down" data-target="weightKg" data-step="-0.5" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="bmiInputsUS" style="display:none;">
+          <div class="amount-panel" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Height (ft)</label>
+              <div class="stepper">
+                <input type="number" id="heightFt" placeholder="5" step="1">
+                <div class="stepper-buttons">
+                  <button class="step-btn up" data-target="heightFt" data-step="1" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+                  <button class="step-btn down" data-target="heightFt" data-step="-1" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Height (in)</label>
+              <div class="stepper">
+                <input type="number" id="heightIn" placeholder="9" step="1">
+                <div class="stepper-buttons">
+                  <button class="step-btn up" data-target="heightIn" data-step="1" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+                  <button class="step-btn down" data-target="heightIn" data-step="-1" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Weight (lb)</label>
+            <div class="stepper">
+              <input type="number" id="weightLb" placeholder="154" step="1">
+              <div class="stepper-buttons">
+                <button class="step-btn up" data-target="weightLb" data-step="1" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+                <button class="step-btn down" data-target="weightLb" data-step="-1" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top:6px;">Formula</div>
+        <div class="bmi-formula-list" id="bmiFormulaList">
+          <div class="bmi-formula active" data-formula="standard">
+            <div class="radio"></div>
+            <div class="ftext">
+              <div class="ftitle">Standard BMI</div>
+              <div class="fdesc">weight (kg) ÷ height (m)²</div>
+            </div>
+          </div>
+          <div class="bmi-formula" data-formula="newbmi">
+            <div class="radio"></div>
+            <div class="ftext">
+              <div class="ftitle">New BMI (Oxford)</div>
+              <div class="fdesc">1.3 × weight ÷ height²·⁵ — corrects for height bias</div>
+            </div>
+          </div>
+          <div class="bmi-formula" data-formula="ponderal">
+            <div class="radio"></div>
+            <div class="ftext">
+              <div class="ftitle">Ponderal Index</div>
+              <div class="fdesc">weight (kg) ÷ height (m)³</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">For your calorie needs</div>
+        <div class="amount-panel" style="margin-bottom:12px;">
+          <div class="field">
+            <label>Age</label>
+            <div class="stepper">
+              <input type="number" id="ageInput" placeholder="30" step="1" min="0">
+              <div class="stepper-buttons">
+                <button class="step-btn up" data-target="ageInput" data-step="1" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+                <button class="step-btn down" data-target="ageInput" data-step="-1" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Sex</label>
+            <select id="sexInput">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:6px;">
+          <label>Activity level</label>
+          <select id="activityInput">
+            <option value="1.2">Sedentary — little/no exercise</option>
+            <option value="1.375" selected>Light — 1-3 days/week</option>
+            <option value="1.55">Moderate — 3-5 days/week</option>
+            <option value="1.725">Active — 6-7 days/week</option>
+            <option value="1.9">Very active — hard daily training</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="calcBmiBtn" style="margin-top:14px;">Calculate</button>
+      </div>
+
+      <div class="card" id="bmiResultCard" style="display:none;">
+        <div class="bmi-result">
+          <span class="num mono" id="bmiNum">0</span>
+          <div><span class="bmi-badge" id="bmiBadge">—</span></div>
+        </div>
+
+        <div class="scale-wrap">
+          <div class="scale-track-wrap">
+            <div class="scale-pointer" id="scalePointer"></div>
+            <div class="scale-bar" id="scaleBar"></div>
+          </div>
+          <div class="scale-ticks" id="scaleTicks"></div>
+        </div>
+
+        <p class="helper-text" id="bmiFormulaNote"></p>
+      </div>
+
+      <div class="card" id="kcalNeedsCard" style="display:none;">
+        <h2 style="margin:0 0 4px; font-size:15px;">Daily calorie needs</h2>
+        <p class="helper-text" style="margin-top:2px;">Based on the Mifflin-St Jeor equation and your activity level. Tap a card to set it as your calculator goal.</p>
+        <div class="kcal-needs-grid">
+          <div class="kcal-need-card">
+            <div class="kn-label">Lose weight</div>
+            <div class="kn-num mono" id="kcalLose">—</div>
+            <button class="kn-set" data-goal-target="kcalLose">Set as goal</button>
+          </div>
+          <div class="kcal-need-card">
+            <div class="kn-label">Maintain</div>
+            <div class="kn-num mono" id="kcalMaintain">—</div>
+            <button class="kn-set" data-goal-target="kcalMaintain">Set as goal</button>
+          </div>
+          <div class="kcal-need-card">
+            <div class="kn-label">Gain weight</div>
+            <div class="kn-num mono" id="kcalGain">—</div>
+            <button class="kn-set" data-goal-target="kcalGain">Set as goal</button>
+          </div>
+        </div>
+      </div>
+      <div class="empty-hint" id="kcalNeedsHint" style="display:none;">Enter your age above to see daily calorie recommendations.</div>
+    </section>
+
+    <!-- TEMPLATES VIEW -->
+    <section class="view" id="view-templates">
+      <div class="section-title" style="margin-top:6px;">Saved templates</div>
+      <div id="templatesList"></div>
+      <div class="empty-hint" id="templatesEmpty" style="display:none;">
+        No templates yet. Build a list in the Calculate tab, then tap “Save as template”.
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-view="view-calc">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C9 7 6 9.5 6 14a6 6 0 0 0 12 0c0-4.5-3-7-6-11Z"/></svg>
+        Calculate
+      </button>
+      <button class="nav-btn" data-view="view-bmi">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+        BMI
+      </button>
+      <button class="nav-btn" data-view="view-templates">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3Z"/></svg>
+        Templates
+      </button>
+    </div>
+  </nav>
+
+</div>
+
+<script src="js/foods-data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
