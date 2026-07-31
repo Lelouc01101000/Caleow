@@ -1,5 +1,7 @@
-# Caleow
+# [Caleow](https://lelouc01101000.github.io/Caleow/)
 Caleow is a website for counting calories, with library of food with calorie value and BMI calculator.
+
+Available at: https://lelouc01101000.github.io/Caleow/
 
 ## Stack
 Vanilla HTML/CSS/JS. No framework, no build step, no dependencies.
